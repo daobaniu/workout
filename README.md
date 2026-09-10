@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 燃脂搭子 · 减脂健身 Agent
 
-## Getting Started
+Next.js + TypeScript 网页 Agent：记饮食、推力量训练、推每日饮食，必要时用 Tavily 联网查证。
 
-First, run the development server:
+## 快速开始
+
+1. 安装依赖
+
+```bash
+npm install
+```
+
+2. 填写环境变量：复制 `.env.example` 为 `.env`（仓库里已有 `.env` 占位），填入：
+
+- `OPENAI_API_KEY`（必填）
+- `OPENAI_BASE_URL`（可选，兼容中转）
+- `OPENAI_MODEL`（默认 `gpt-4o-mini`）
+- `TAVILY_API_KEY`（可选，联网搜索）
+
+3. 初始化数据库（若尚未 migrate）
+
+```bash
+npx prisma migrate dev
+```
+
+4. 启动
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打开 [http://localhost:3000](http://localhost:3000)，先去「建档」，再开始对话。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 试试这些话
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- 「中午吃了鸡胸和米饭」
+- 「今天只有 30 分钟在家练」
+- 「今天吃什么」
+- 「罗马尼亚硬拉怎么做」（会触发联网搜索，需配置 Tavily）
 
-## Learn More
+## 说明
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 单用户本地 SQLite，无登录
+- 训练课表来自本地模板，不靠搜索生成
+- 建议非医疗指导

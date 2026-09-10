@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  id               String   @id @default("local")
+  heightCm         Float?
+  weightKg         Float?
+  targetWeightKg   Float?
+  sex              String? // male | female
+  age              Int?
+  activityLevel    String? // sedentary | light | moderate | active
+  dailyCalorieGoal Int      @default(1800)
+  trainingPlace    String   @default("home") // home | gym
+  daysPerWeek      Int      @default(3)
+  notes            String?
+  updatedAt        DateTime @updatedAt
+  createdAt        DateTime @default(now())
+}
+
+model FoodLog {
+  id          String   @id @default(cuid())
+  eatenAt     DateTime @default(now())
+  description String
+  calories    Int
+  proteinG    Float?
+  carbsG      Float?
+  fatG        Float?
+  source      String   @default("chat") // chat | manual
+}
+
+model WeightLog {
+  id       String   @id @default(cuid())
+  date     DateTime @default(now())
+  weightKg Float
+}
+
+model WorkoutLog {
+  id            String   @id @default(cuid())
+  date          DateTime @default(now())
+  templateId    String?
+  title         String
+  exercisesJson String
+  completed     Boolean  @default(false)
+  notes         String?
+}
+
+model ChatSession {
+  id        String        @id @default("local")
+  updatedAt DateTime      @updatedAt
+  createdAt DateTime      @default(now())
+  messages  ChatMessage[]
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  sessionId String      @default("local")
+  role      String
+  content   String
+  createdAt DateTime    @default(now())
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
