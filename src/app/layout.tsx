@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { DM_Sans, Fraunces, Geist } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/toast";
+import { ClientAppShell } from "@/components/layout/client-app-shell";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 const display = Fraunces({
   variable: "--font-display",
@@ -24,8 +26,21 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="zh-CN" className={cn("h-full", "antialiased", display.variable, body.variable, "font-sans", geist.variable)}>
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html
+      lang="zh-CN"
+      className={cn(
+        "h-full",
+        "antialiased",
+        display.variable,
+        body.variable,
+        "font-sans",
+        geist.variable,
+      )}
+    >
+      <body className="h-full overflow-hidden">
+        <ClientAppShell>{children}</ClientAppShell>
+        <Toaster />
+      </body>
     </html>
   );
 }

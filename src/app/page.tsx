@@ -16,6 +16,7 @@ export default async function HomePage() {
               weightKg: overview.profile.weightKg,
               targetWeightKg: overview.profile.targetWeightKg,
               trainingPlace: overview.profile.trainingPlace,
+              goalMode: overview.profile.goalMode,
             }
           : null,
         nutrition: overview.nutrition,
@@ -23,9 +24,26 @@ export default async function HomePage() {
           id: w.id,
           title: w.title,
           completed: w.completed,
+          caloriesBurned: w.caloriesBurned,
+          source: w.source,
         })),
         latestWeight: overview.latestWeight,
         weightTrend: overview.weightTrend,
+        weightPoints: overview.weightPoints,
+        activeProgram: overview.activeProgram,
+        todayPlan: overview.todayPlan
+          ? {
+              title: overview.todayPlan.title,
+              estimatedMin: overview.todayPlan.estimatedMin,
+              isRestDay: overview.todayPlan.isRestDay,
+              exercises: overview.todayPlan.exercises.map((e) => ({
+                name: e.name,
+                sets: e.sets,
+                reps: e.reps,
+              })),
+            }
+          : null,
+        checkedIn: overview.checkedIn,
       }}
     />
   );

@@ -12,12 +12,24 @@ model Profile {
   heightCm         Float?
   weightKg         Float?
   targetWeightKg   Float?
-  sex              String? // male | female
+  sex              String?
   age              Int?
-  activityLevel    String? // sedentary | light | moderate | active
+  activityLevel    String?
   dailyCalorieGoal Int      @default(1800)
-  trainingPlace    String   @default("home") // home | gym
+  /// 每日蛋白质目标 g；空则按体重估算
+  dailyProteinGoal Int?
+  /// cut | maintain | bulk（减脂 / 维持 / 增肌）
+  goalMode         String   @default("cut")
+  trainingPlace    String   @default("home")
   daysPerWeek      Int      @default(3)
+  /// beginner | intermediate
+  experienceLevel  String   @default("beginner")
+  /// 忌口，如：不吃牛肉、海鲜过敏
+  dietRestrictions String?
+  /// 伤病规避，如：膝盖不适避免跳跃
+  injuryNotes      String?
+  /// 器械偏好，如：只有哑铃、偏好器械
+  equipmentPref    String?
   notes            String?
   updatedAt        DateTime @updatedAt
   createdAt        DateTime @default(now())
@@ -31,7 +43,7 @@ model FoodLog {
   proteinG    Float?
   carbsG      Float?
   fatG        Float?
-  source      String   @default("chat") // chat | manual
+  source      String   @default("chat")
 }
 
 model WeightLog {
@@ -48,6 +60,86 @@ model WorkoutLog {
   exercisesJson String
   completed     Boolean  @default(false)
   notes         String?
+}
+
+/// 训练计划（内置分化 / AI 推荐 / 用户自建）
+model TrainingProgram {
+  id        String      @id @default(cuid())
+  name      String
+  source    String      @default("custom") // builtin | ai | custom
+  splitType String      @default("custom") // ppl | fullbody | upper_lower | custom
+  place     String      @default("gym") // home | gym
+  isActive  Boolean     @default(false)
+  startedAt DateTime?
+  notes     String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  days      ProgramDay[]
+  sessions  WorkoutSession[]
+}
+
+/// 计划中的某一训练日（如推日 / A 日）
+model ProgramDay {
+  id            String          @id @default(cuid())
+  programId     String
+  dayIndex      Int
+  name          String
+  focus         String?
+  exercisesJson String
+  estimatedMin  Int             @default(45)
+  program       TrainingProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  sessions      WorkoutSession[]
+
+  @@index([programId])
+  @@unique([programId, dayIndex])
+}
+
+/// 一次实际训练会话（可来自计划或临时推课）
+model WorkoutSession {
+  id            String           @id @default(cuid())
+  date          DateTime         @default(now())
+  title         String
+  programId     String?
+  programDayId  String?
+  exercisesJson String
+  durationMin   Int?
+  caloriesBurned Int?
+  completed     Boolean          @default(false)
+  notes         String?
+  program       TrainingProgram? @relation(fields: [programId], references: [id], onDelete: SetNull)
+  programDay    ProgramDay?      @relation(fields: [programDayId], references: [id], onDelete: SetNull)
+  checkIn       CheckIn?
+  setLogs       ExerciseSetLog[]
+
+  @@index([date])
+  @@index([programId])
+}
+
+/// 单组训练负荷（P2-3）：可查历史，供渐进超负荷
+model ExerciseSetLog {
+  id           String         @id @default(cuid())
+  sessionId    String
+  exerciseId   String
+  exerciseName String
+  setIndex     Int            @default(1)
+  reps         Int
+  weightKg     Float?
+  rpe          Float?
+  createdAt    DateTime       @default(now())
+  session      WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([exerciseId, createdAt])
+  @@index([sessionId])
+}
+
+/// 日历打卡（一天一条；可关联训练会话）
+model CheckIn {
+  id               String          @id @default(cuid())
+  dateKey          String          @unique // yyyy-MM-dd
+  note             String?
+  workoutSessionId String?         @unique
+  createdAt        DateTime        @default(now())
+  workoutSession   WorkoutSession? @relation(fields: [workoutSessionId], references: [id], onDelete: SetNull)
 }
 
 model ChatSession {

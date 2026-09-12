@@ -5,7 +5,12 @@ export type WorkoutExercise = {
   name: string;
   sets: number;
   reps: string;
+  weightKg?: number | null;
   notes?: string;
+  howTo?: string;
+  cautions?: string[];
+  imageUrl?: string;
+  videoUrl?: string;
 };
 
 export type WorkoutPlan = {
@@ -112,6 +117,34 @@ const templates: TemplateDef[] = [
       "calf_raise",
     ],
   },
+  {
+    id: "home_cardio_30",
+    title: "居家有氧 · 30 分钟",
+    place: "home",
+    estimatedMinutes: 30,
+    exerciseIds: ["jumping_jack", "jog", "jump_rope", "brisk_walk"],
+  },
+  {
+    id: "home_cardio_45",
+    title: "居家/户外有氧 · 45 分钟",
+    place: "home",
+    estimatedMinutes: 45,
+    exerciseIds: ["brisk_walk", "jog", "jump_rope", "stair_climb"],
+  },
+  {
+    id: "gym_cardio_40",
+    title: "健身房有氧 · 40 分钟",
+    place: "gym",
+    estimatedMinutes: 40,
+    exerciseIds: ["elliptical", "stationary_bike", "rower_cardio"],
+  },
+  {
+    id: "outdoor_cardio_swim",
+    title: "游泳有氧 · 40 分钟",
+    place: "home",
+    estimatedMinutes: 40,
+    exerciseIds: ["swim"],
+  },
 ];
 
 function buildPlan(template: TemplateDef, maxExercises?: number): WorkoutPlan {
@@ -128,8 +161,14 @@ function buildPlan(template: TemplateDef, maxExercises?: number): WorkoutPlan {
       sets: ex?.defaultSets ?? 3,
       reps: ex?.defaultReps ?? "10",
       notes: ex?.notes,
+      howTo: ex?.howTo,
+      cautions: ex?.cautions,
+      imageUrl: ex?.media?.imageUrl,
+      videoUrl: ex?.media?.videoUrl,
     };
   });
+
+  const isCardio = template.id.includes("cardio") || template.id.includes("swim");
 
   return {
     templateId: template.id,
@@ -137,11 +176,17 @@ function buildPlan(template: TemplateDef, maxExercises?: number): WorkoutPlan {
     estimatedMinutes: template.estimatedMinutes,
     place: template.place,
     exercises: workoutExercises,
-    tips: [
-      "组间休息 60–90 秒，复合动作可到 2 分钟",
-      "动作质量优先于重量；疼痛（非肌肉酸）请停止",
-      "减脂期力量训练以维持肌肉为主，不必追求力竭",
-    ],
+    tips: isCardio
+      ? [
+          "有氧以能说话但不轻松为宜；刺痛/头晕立刻停下",
+          "时长优先于速度；新手先保证每周次数再加量",
+          "力量日可后置 10–20 分钟轻松有氧，不必每次都拉满",
+        ]
+      : [
+          "组间休息 60–90 秒，复合动作可到 2 分钟",
+          "动作质量优先于重量；疼痛（非肌肉酸）请停止",
+          "减脂期力量训练以维持肌肉为主，不必追求力竭",
+        ],
   };
 }
 
@@ -150,7 +195,7 @@ export function suggestWorkoutPlan(options: {
   minutes?: number;
   daysPerWeek?: number;
   lazy?: boolean;
-  focus?: "full" | "push" | "pull" | "legs";
+  focus?: "full" | "push" | "pull" | "legs" | "cardio";
 }): WorkoutPlan {
   const place = options.place ?? "home";
   const minutes = options.minutes ?? 40;
@@ -159,7 +204,15 @@ export function suggestWorkoutPlan(options: {
 
   let template: TemplateDef | undefined;
 
-  if (place === "home") {
+  if (options.focus === "cardio") {
+    if (place === "gym") {
+      template = templates.find((t) => t.id === "gym_cardio_40");
+    } else if (minutes <= 35) {
+      template = templates.find((t) => t.id === "home_cardio_30");
+    } else {
+      template = templates.find((t) => t.id === "home_cardio_45");
+    }
+  } else if (place === "home") {
     template =
       minutes <= 35
         ? templates.find((t) => t.id === "home_fullbody_30")
@@ -171,7 +224,7 @@ export function suggestWorkoutPlan(options: {
   } else if (options.focus === "legs") {
     template = templates.find((t) => t.id === "gym_legs");
   } else if (days >= 4) {
-    const rotation = [ "gym_push", "gym_pull", "gym_legs"] as const;
+    const rotation = ["gym_push", "gym_pull", "gym_legs"] as const;
     const dayIndex = new Date().getDay() % rotation.length;
     template = templates.find((t) => t.id === rotation[dayIndex]);
   } else {
@@ -195,7 +248,7 @@ export function suggestWorkoutPlan(options: {
   } else if (minutes < plan.estimatedMinutes) {
     const trimmed = buildPlan(
       template,
-      Math.max(4, Math.floor(template.exerciseIds.length * (minutes / plan.estimatedMinutes))),
+      Math.max(1, Math.floor(template.exerciseIds.length * (minutes / plan.estimatedMinutes))),
     );
     trimmed.title = `${trimmed.title}（按时长裁剪）`;
     trimmed.estimatedMinutes = minutes;
@@ -203,6 +256,59 @@ export function suggestWorkoutPlan(options: {
   }
 
   return plan;
+}
+
+/** 临时推课 + 渐进超负荷历史（P2-4）+ 伤病规避（P2-7） */
+export async function suggestWorkoutPlanWithHistory(
+  options: Parameters<typeof suggestWorkoutPlan>[0] & {
+    injuryNotes?: string | null;
+  },
+): Promise<WorkoutPlan> {
+  const plan = suggestWorkoutPlan(options);
+  const { attachOverloadToExercises } = await import("@/lib/fitness/overload");
+  const { filterExercisesByInjury } =
+    await import("@/lib/fitness/preferences");
+
+  const mapped = plan.exercises.map((e) => ({
+    exerciseId: e.exerciseId,
+    name: e.name,
+    sets: e.sets,
+    reps: e.reps,
+    notes: e.notes,
+    howTo: e.howTo,
+    cautions: e.cautions,
+    imageUrl: e.imageUrl,
+    videoUrl: e.videoUrl,
+  }));
+
+  const injurySafe = filterExercisesByInjury(
+    mapped,
+    options.injuryNotes,
+    2,
+  );
+  const removed =
+    mapped.length - injurySafe.length > 0
+      ? mapped.length - injurySafe.length
+      : 0;
+
+  const { exercises, tips } = await attachOverloadToExercises(injurySafe);
+  const extraTips = [...tips];
+  if (removed > 0 && options.injuryNotes?.trim()) {
+    extraTips.unshift(
+      `已按伤病偏好避开 ${removed} 个动作（${options.injuryNotes.trim()}）`,
+    );
+  } else if (options.injuryNotes?.trim()) {
+    extraTips.push(`注意伤病：${options.injuryNotes.trim()}，不适即停`);
+  }
+
+  return {
+    ...plan,
+    exercises: exercises.map((e, i) => ({
+      ...(injurySafe[i] ?? plan.exercises[i]),
+      ...e,
+    })),
+    tips: [...plan.tips, ...extraTips],
+  };
 }
 
 export function listTemplates() {
