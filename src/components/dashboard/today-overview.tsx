@@ -197,7 +197,7 @@ export function TodayOverview({
       <div className="flex items-center justify-between gap-2">
         <div>
           <p className="text-xs tracking-[0.2em] text-muted-foreground">TODAY</p>
-          <h2 className="font-(family-name:--font-display) text-xl text-foreground">
+          <h2 className="font-heading text-xl text-foreground">
             今日概览
           </h2>
         </div>

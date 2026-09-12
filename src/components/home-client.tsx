@@ -34,7 +34,7 @@ export function HomeClient({
   return (
     <div className="flex h-full min-h-0 flex-col gap-2 px-3 pt-3 pb-2">
       <header className="flex shrink-0 items-center justify-between gap-2">
-        <h1 className="font-(family-name:--font-display) text-xl text-foreground">
+        <h1 className="font-heading text-xl text-foreground">
           燃脂搭子
         </h1>
         {!hasProfile ? (

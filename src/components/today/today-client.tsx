@@ -349,7 +349,7 @@ export function TodayClient({
       <header className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs tracking-[0.2em] text-muted-foreground">TODAY</p>
-          <h1 className="font-(family-name:--font-display) text-2xl text-foreground">
+          <h1 className="font-heading text-2xl text-foreground">
             今日
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">

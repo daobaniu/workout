@@ -308,7 +308,7 @@ export function MessageList({ messages }: { messages: UIMessage[] }) {
   if (!messages.length) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-        <p className="font-(family-name:--font-display) text-3xl text-foreground">
+        <p className="font-heading text-3xl text-foreground">
           燃脂搭子
         </p>
         <p className="max-w-md text-sm leading-relaxed text-muted-foreground">

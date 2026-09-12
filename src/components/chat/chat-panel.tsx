@@ -73,7 +73,7 @@ function ChatPanelInner({
       <div className="mb-2 flex shrink-0 items-center justify-between gap-2">
         <div>
           <p className="text-xs tracking-[0.2em] text-muted-foreground">COACH</p>
-          <h2 className="font-(family-name:--font-display) text-xl text-gamma md:text-2xl">
+          <h2 className="font-heading text-xl text-gamma md:text-2xl">
             对话
           </h2>
         </div>

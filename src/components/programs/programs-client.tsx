@@ -310,7 +310,7 @@ export function ProgramsClient({
     <div className="mx-auto flex w-full flex-col gap-5 px-3 py-4">
       <header>
         <p className="text-xs tracking-[0.2em] text-muted-foreground">PROGRAMS</p>
-        <h1 className="font-(family-name:--font-display) text-2xl text-foreground">
+        <h1 className="font-heading text-2xl text-foreground">
           训练计划
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">

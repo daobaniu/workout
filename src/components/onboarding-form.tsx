@@ -163,7 +163,7 @@ export function OnboardingForm({
     <div className="mx-auto flex w-full flex-col gap-4 px-3 py-4">
       <div>
         <p className="text-xs tracking-[0.2em] text-muted-foreground">PROFILE</p>
-        <h1 className="mt-1 font-(family-name:--font-display) text-2xl text-foreground">
+        <h1 className="mt-1 font-heading text-2xl text-foreground">
           {hasExistingProfile ? "我的档案" : "建立档案"}
         </h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
